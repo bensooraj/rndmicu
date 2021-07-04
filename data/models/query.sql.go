@@ -76,6 +76,26 @@ func (q *Queries) CreateCreator(ctx context.Context, arg CreateCreatorParams) (C
 	return i, err
 }
 
+const deleteAudioShortByID = `-- name: DeleteAudioShortByID :one
+DELETE FROM audio_shorts WHERE id=$1 RETURNING id, creator_id, title, description, category, audio_file_url, date_created, date_updated
+`
+
+func (q *Queries) DeleteAudioShortByID(ctx context.Context, id uuid.UUID) (AudioShort, error) {
+	row := q.db.QueryRowContext(ctx, deleteAudioShortByID, id)
+	var i AudioShort
+	err := row.Scan(
+		&i.ID,
+		&i.CreatorID,
+		&i.Title,
+		&i.Description,
+		&i.Category,
+		&i.AudioFileUrl,
+		&i.DateCreated,
+		&i.DateUpdated,
+	)
+	return i, err
+}
+
 const findAudioShortByID = `-- name: FindAudioShortByID :one
 SELECT id, creator_id, title, description, category, audio_file_url, date_created, date_updated FROM audio_shorts WHERE id=$1 LIMIT 1
 `

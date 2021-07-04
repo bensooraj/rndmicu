@@ -61,7 +61,7 @@ func main() {
 		log.Println("Error initializing the s3 upload engine")
 		return
 	}
-	s3Engine.StartUploadWorkers()
+	s3Engine.StartWorkers()
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{
 		DB:         db,
@@ -93,7 +93,7 @@ func main() {
 
 	// Graceful Shutdown
 	db.Close()
-	s3Engine.StopUploadWorkers()
+	s3Engine.StopWorkers()
 
 	serverCtxCancel()
 

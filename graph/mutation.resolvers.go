@@ -26,7 +26,8 @@ func (r *mutationResolver) AudioshortCreate(ctx context.Context, audioshort mode
 	fileName := audioID.String() + filepath.Ext(audioshort.AudioFile.Filename)
 	keyName := fmt.Sprintf("%s/%d", "short", audioshort.CreatorID)
 
-	r.S3.QueueUploadJob(&s3engine.AudioFileUploadJob{
+	r.S3.QueueJob(&s3engine.AudioFileJob{
+		TaskType:    s3engine.UPLOAD_TASK,
 		File:        audioshort.AudioFile.File,
 		Filename:    fileName,
 		Size:        audioshort.AudioFile.Size,
@@ -49,6 +50,21 @@ func (r *mutationResolver) AudioshortCreate(ctx context.Context, audioshort mode
 		return nil, err
 	}
 	return &a, nil
+}
+
+func (r *mutationResolver) AudioshortDelete(ctx context.Context, id string) (*models.AudioShort, error) {
+	q := models.New(r.DB)
+	// Check if the audio short exists
+	as, err := q.DeleteAudioShortByID(ctx, uuid.MustParse(id))
+	if err != nil {
+		return nil, fmt.Errorf("The Audio Short ID %s doesn't exist.", id)
+	}
+	r.S3.QueueJob(&s3engine.AudioFileJob{
+		TaskType: s3engine.DELETE_TASK,
+		Filename: filepath.Base(as.AudioFileUrl),
+		KeyName:  fmt.Sprintf("%s/%d", "short", as.CreatorID),
+	})
+	return &as, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

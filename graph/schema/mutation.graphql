@@ -1,3 +1,4 @@
 type Mutation {
   audioshortCreate(audioshort: NewAudioShort!): AudioShort!
+  audioshortDelete(id: String!): AudioShort!
 }
