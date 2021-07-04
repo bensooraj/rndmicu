@@ -17,5 +17,11 @@ utils-seed: utils-create
 graph-gen:
 	go run github.com/99designs/gqlgen generate
 
+dc-up:
+	docker-compose up --build
+
+clean:
+	docker system prune --force
+
 run:
 	@go run server.go
