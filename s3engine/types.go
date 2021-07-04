@@ -9,7 +9,8 @@ var (
 	taskCounter int = 0
 )
 
-type AudioFileUploadJob struct {
+type AudioFileJob struct {
+	TaskType    TASK_TYPE
 	File        io.Reader
 	Filename    string
 	Size        int64
