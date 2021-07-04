@@ -2,6 +2,9 @@ format:
 	@go mod tidy
 	@go fmt github.com/bensooraj/rndmicu/...
 
+lint:
+	golangci-lint run
+
 models:
 	sqlc generate --file data/sqlc.json
 
