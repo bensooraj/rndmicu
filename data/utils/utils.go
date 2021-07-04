@@ -16,15 +16,14 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func init() {
+func main() {
+	var err error
+
 	// loads values from .env into the system
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("Error loading environment variables: %v", err)
 	}
-}
 
-func main() {
-	var err error
 	if len(os.Args) != 2 {
 		log.Println("utils needs exactly one argument")
 		return
@@ -163,7 +162,7 @@ func SeedAudioShorts(db *sqlx.DB) error {
 	return err
 }
 
-// Helpers funcs
+// Helpers funcs.
 func makeRange(min, max int32) []int32 {
 	a := make([]int32, max-min+1)
 	for i := range a {

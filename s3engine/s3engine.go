@@ -2,9 +2,10 @@ package s3engine
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
 	"log"
-	"math/rand"
+	"math/big"
 	"os"
 	"time"
 
@@ -46,8 +47,8 @@ func NewS3Engine(opts NewS3EngineOptions) *S3Engine {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("Error loading environment variables: %v", err)
 	}
-	var s3e S3Engine
-	s3e = S3Engine{
+
+	s3e := S3Engine{
 		AccessKeyID:            os.Getenv("AWS_ACCESS_KEY_ID"),
 		SecretAccessKey:        os.Getenv("AWS_SECRET_ACCESS_KEY"),
 		DefaultRegion:          os.Getenv("AWS_DEFAULT_REGION"),
@@ -81,7 +82,7 @@ func (s3e *S3Engine) Init() error {
 
 	uploader := s3manager.NewUploader(sess, func(u *s3manager.Uploader) {
 		u.Concurrency = s3e.Concurrency
-		u.PartSize = s3e.UploadChunkSizeInBytes //10 * 1024 * 1024 // The minimum/default allowed part size is 5MB
+		u.PartSize = s3e.UploadChunkSizeInBytes // 10 * 1024 * 1024 // The minimum/default allowed part size is 5MB
 	})
 
 	s3e.Uploader = uploader
@@ -107,17 +108,18 @@ func (s3e *S3Engine) StopWorkers() {
 	}
 }
 
-func (s3e *S3Engine) Worker(JobChannels chan *AudioFileJob) {
-	flushTimeout := time.After(time.Duration(1+rand.Intn(3)) * time.Minute)
+func (s3e *S3Engine) Worker(jobChannels chan *AudioFileJob) {
+	n, _ := rand.Int(rand.Reader, big.NewInt(3))
+	flushTimeout := time.After(time.Duration(1+n.Int64()) * time.Minute)
 	for {
 		select {
 		case <-s3e.Ctx.Done():
 			log.Println("")
 			return
 
-		case job, ok := <-JobChannels:
+		case job, ok := <-jobChannels:
 			if !ok {
-				log.Println("JobChannels closed")
+				log.Println("jobChannels closed")
 				return
 			}
 
@@ -148,7 +150,7 @@ func (s3e *S3Engine) Worker(JobChannels chan *AudioFileJob) {
 				}
 			}
 		case f := <-flushTimeout:
-			go s3e.Worker(JobChannels)
+			go s3e.Worker(jobChannels)
 			log.Println("Flushing and re-spawn at", f.String())
 			return
 		}
