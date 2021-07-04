@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -18,14 +20,14 @@ import (
 
 const defaultPort = "8080"
 
-func init() {
+func main() {
+	var err error
+
 	// loads values from .env into the system
-	if err := godotenv.Load(); err != nil {
+	if err = godotenv.Load(); err != nil {
 		log.Fatalf("Error loading environment variables: %v", err)
 	}
-}
 
-func main() {
 	serverCtx, serverCtxCancel := context.WithCancel(context.Background())
 
 	dbDisableTLS := os.Getenv("DB_DISABLE_TLS")
@@ -92,13 +94,30 @@ func main() {
 	http.Handle("/", aplayground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)
 
-	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	serverErrors := make(chan error, 1)
+	go func() {
+		log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
+		serverErrors <- http.ListenAndServe(":"+port, nil)
+	}()
 
-	// Graceful Shutdown
+	// Blocking main and waiting for shutdown of the daemon.
+	osSignals := make(chan os.Signal, 1)
+	signal.Notify(osSignals, os.Interrupt, syscall.SIGTERM)
+
+	// Waiting for an osSignal or a server error.
+	select {
+	case e := <-serverErrors:
+		log.Printf("server failed to start: %+v", e)
+		return
+
+	case sig := <-osSignals:
+		// Graceful Shutdown
+		log.Println("Received os signal: ", sig.String())
+	}
+
+	// Graceful shutdown
 	db.Close()
 	s3Engine.StopWorkers()
-
 	serverCtxCancel()
 
 	time.Sleep(5 * time.Second) // Allow stuffs to simmer down
