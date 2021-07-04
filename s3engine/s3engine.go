@@ -39,12 +39,14 @@ func NewS3Engine(opts NewS3EngineOptions) *S3Engine {
 	}
 	var s3 S3Engine
 	s3 = S3Engine{
-		AccessKeyID:            os.Getenv("DB_USERNAME"),
-		SecretAccessKey:        os.Getenv("DB_USERNAME"),
-		DefaultRegion:          os.Getenv("DB_USERNAME"),
+		AccessKeyID:            os.Getenv("AWS_ACCESS_KEY_ID"),
+		SecretAccessKey:        os.Getenv("AWS_SECRET_ACCESS_KEY"),
+		DefaultRegion:          os.Getenv("AWS_DEFAULT_REGION"),
 		ErrorChannel:           opts.ErrorChannel,
 		UploadChunkSizeInBytes: opts.UploadChunkSizeInBytes,
 		Concurrency:            opts.Concurrency,
+		Ctx:                    opts.Ctx,
+		BucketName:             opts.BucketName,
 	}
 
 	return &s3
@@ -77,6 +79,7 @@ func (s3 *S3Engine) Init() error {
 }
 
 func (s3 *S3Engine) StartUploadWorkers() {
+	s3.UploadJobChannels = make([]chan *AudioFileUploadJob, s3.Concurrency)
 	for i := 0; i < s3.Concurrency; i++ {
 		s3.UploadJobChannels[i] = make(chan *AudioFileUploadJob)
 		go s3.UploadWorker(s3.UploadJobChannels[i])
@@ -106,6 +109,8 @@ func (s3 *S3Engine) UploadWorker(uploadJobChannels chan *AudioFileUploadJob) {
 				log.Println("uploadJobChannels closed")
 				return
 			}
+			log.Println("PutObjectInput.Bucket: s3.BucketName", s3.BucketName)
+			log.Println("PutObjectInput.Bucket: Key", fmt.Sprintf("%s/%s", job.KeyName, job.Filename))
 			_, err := s3.Uploader.Upload(&s3manager.UploadInput{
 				Bucket:      aws.String(s3.BucketName),
 				Key:         aws.String(fmt.Sprintf("%s/%s", job.KeyName, job.Filename)),
@@ -114,7 +119,7 @@ func (s3 *S3Engine) UploadWorker(uploadJobChannels chan *AudioFileUploadJob) {
 			})
 			if err != nil {
 				s3.ErrorChannel <- err
-				log.Println("Error uploading")
+				log.Println("Error uploading", err)
 				continue
 			}
 		case f := <-flushTimeout:

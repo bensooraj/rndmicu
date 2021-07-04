@@ -22,4 +22,6 @@ type NewS3EngineOptions struct {
 	Ctx                    context.Context
 	UploadChunkSizeInBytes int64
 	Concurrency            int
+
+	BucketName string
 }

@@ -16,3 +16,6 @@ utils-seed: utils-create
 
 graph-gen:
 	go run github.com/99designs/gqlgen generate
+
+run:
+	@go run server.go
