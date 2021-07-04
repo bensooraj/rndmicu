@@ -32,3 +32,14 @@ INSERT INTO audio_shorts (
   $1, $2, $3, $4, $5, $6, $7, $8
 )
 RETURNING *;
+
+-- name: UpdateAudioShortByID :one
+UPDATE audio_shorts
+SET title = $1,
+    description = $2,
+    category = $3,
+    date_updated = $4
+WHERE id=$5 RETURNING *;
+
+-- name: DeleteAudioShortByID :one
+DELETE FROM audio_shorts WHERE id=$1 RETURNING *;

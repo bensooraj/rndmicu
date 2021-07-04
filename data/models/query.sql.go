@@ -76,6 +76,26 @@ func (q *Queries) CreateCreator(ctx context.Context, arg CreateCreatorParams) (C
 	return i, err
 }
 
+const deleteAudioShortByID = `-- name: DeleteAudioShortByID :one
+DELETE FROM audio_shorts WHERE id=$1 RETURNING id, creator_id, title, description, category, audio_file_url, date_created, date_updated
+`
+
+func (q *Queries) DeleteAudioShortByID(ctx context.Context, id uuid.UUID) (AudioShort, error) {
+	row := q.db.QueryRowContext(ctx, deleteAudioShortByID, id)
+	var i AudioShort
+	err := row.Scan(
+		&i.ID,
+		&i.CreatorID,
+		&i.Title,
+		&i.Description,
+		&i.Category,
+		&i.AudioFileUrl,
+		&i.DateCreated,
+		&i.DateUpdated,
+	)
+	return i, err
+}
+
 const findAudioShortByID = `-- name: FindAudioShortByID :one
 SELECT id, creator_id, title, description, category, audio_file_url, date_created, date_updated FROM audio_shorts WHERE id=$1 LIMIT 1
 `
@@ -182,4 +202,43 @@ func (q *Queries) ListCreators(ctx context.Context, arg ListCreatorsParams) ([]C
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateAudioShortByID = `-- name: UpdateAudioShortByID :one
+UPDATE audio_shorts
+SET title = $1,
+    description = $2,
+    category = $3,
+    date_updated = $4
+WHERE id=$5 RETURNING id, creator_id, title, description, category, audio_file_url, date_created, date_updated
+`
+
+type UpdateAudioShortByIDParams struct {
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Category    string    `json:"category"`
+	DateUpdated time.Time `json:"date_updated"`
+	ID          uuid.UUID `json:"id"`
+}
+
+func (q *Queries) UpdateAudioShortByID(ctx context.Context, arg UpdateAudioShortByIDParams) (AudioShort, error) {
+	row := q.db.QueryRowContext(ctx, updateAudioShortByID,
+		arg.Title,
+		arg.Description,
+		arg.Category,
+		arg.DateUpdated,
+		arg.ID,
+	)
+	var i AudioShort
+	err := row.Scan(
+		&i.ID,
+		&i.CreatorID,
+		&i.Title,
+		&i.Description,
+		&i.Category,
+		&i.AudioFileUrl,
+		&i.DateCreated,
+		&i.DateUpdated,
+	)
+	return i, err
 }
