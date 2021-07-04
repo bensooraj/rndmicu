@@ -67,6 +67,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		AudioshortCreate func(childComplexity int, audioshort model.NewAudioShort) int
 		AudioshortDelete func(childComplexity int, id string) int
+		AudioshortUpdate func(childComplexity int, id string, audioshort model.UpdatedAudioShort) int
 	}
 
 	Query struct {
@@ -84,6 +85,7 @@ type AudioShortResolver interface {
 }
 type MutationResolver interface {
 	AudioshortCreate(ctx context.Context, audioshort model.NewAudioShort) (*models.AudioShort, error)
+	AudioshortUpdate(ctx context.Context, id string, audioshort model.UpdatedAudioShort) (*models.AudioShort, error)
 	AudioshortDelete(ctx context.Context, id string) (*models.AudioShort, error)
 }
 type QueryResolver interface {
@@ -216,6 +218,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AudioshortDelete(childComplexity, args["id"].(string)), true
 
+	case "Mutation.audioshortUpdate":
+		if e.complexity.Mutation.AudioshortUpdate == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_audioshortUpdate_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AudioshortUpdate(childComplexity, args["id"].(string), args["audioshort"].(model.UpdatedAudioShort)), true
+
 	case "Query.audio_short":
 		if e.complexity.Query.AudioShort == nil {
 			break
@@ -343,6 +357,7 @@ directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITI
 `, BuiltIn: false},
 	{Name: "graph/schema/mutation.graphql", Input: `type Mutation {
   audioshortCreate(audioshort: NewAudioShort!): AudioShort!
+  audioshortUpdate(id: String!, audioshort: UpdatedAudioShort!): AudioShort!
   audioshortDelete(id: String!): AudioShort!
 }
 `, BuiltIn: false},
@@ -398,9 +413,15 @@ input NewAudioShort {
   title: String!
   description: String!
   audio_file: Upload!
-  audio_file_url: String!
   category: String!
   creator_id: Int!
+}
+
+input UpdatedAudioShort {
+  title: String
+  description: String
+  audio_file: Upload
+  category: String
 }
 `, BuiltIn: false},
 	{Name: "graph/schema/types/creator.graphql", Input: `type Creator {
@@ -443,6 +464,30 @@ func (ec *executionContext) field_Mutation_audioshortDelete_args(ctx context.Con
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_audioshortUpdate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 model.UpdatedAudioShort
+	if tmp, ok := rawArgs["audioshort"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("audioshort"))
+		arg1, err = ec.unmarshalNUpdatedAudioShort2githubᚗcomᚋbensoorajᚋrndmicuᚋgraphᚋmodelᚐUpdatedAudioShort(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["audioshort"] = arg1
 	return args, nil
 }
 
@@ -1023,6 +1068,48 @@ func (ec *executionContext) _Mutation_audioshortCreate(ctx context.Context, fiel
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().AudioshortCreate(rctx, args["audioshort"].(model.NewAudioShort))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.AudioShort)
+	fc.Result = res
+	return ec.marshalNAudioShort2ᚖgithubᚗcomᚋbensoorajᚋrndmicuᚋdataᚋmodelsᚐAudioShort(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_audioshortUpdate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_audioshortUpdate_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AudioshortUpdate(rctx, args["id"].(string), args["audioshort"].(model.UpdatedAudioShort))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2469,14 +2556,6 @@ func (ec *executionContext) unmarshalInputNewAudioShort(ctx context.Context, obj
 			if err != nil {
 				return it, err
 			}
-		case "audio_file_url":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("audio_file_url"))
-			it.AudioFileURL, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "category":
 			var err error
 
@@ -2490,6 +2569,53 @@ func (ec *executionContext) unmarshalInputNewAudioShort(ctx context.Context, obj
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("creator_id"))
 			it.CreatorID, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdatedAudioShort(ctx context.Context, obj interface{}) (model.UpdatedAudioShort, error) {
+	var it model.UpdatedAudioShort
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "title":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
+			it.Title, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "audio_file":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("audio_file"))
+			it.AudioFile, err = ec.unmarshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "category":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("category"))
+			it.Category, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2646,6 +2772,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = graphql.MarshalString("Mutation")
 		case "audioshortCreate":
 			out.Values[i] = ec._Mutation_audioshortCreate(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "audioshortUpdate":
+			out.Values[i] = ec._Mutation_audioshortUpdate(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -3191,6 +3322,11 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 	return res
 }
 
+func (ec *executionContext) unmarshalNUpdatedAudioShort2githubᚗcomᚋbensoorajᚋrndmicuᚋgraphᚋmodelᚐUpdatedAudioShort(ctx context.Context, v interface{}) (model.UpdatedAudioShort, error) {
+	res, err := ec.unmarshalInputUpdatedAudioShort(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, v interface{}) (graphql.Upload, error) {
 	res, err := graphql.UnmarshalUpload(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -3580,6 +3716,21 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	return graphql.MarshalString(*v)
+}
+
+func (ec *executionContext) unmarshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, v interface{}) (*graphql.Upload, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalUpload(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, sel ast.SelectionSet, v *graphql.Upload) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalUpload(*v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

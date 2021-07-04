@@ -17,7 +17,13 @@ input NewAudioShort {
   title: String!
   description: String!
   audio_file: Upload!
-  audio_file_url: String!
   category: String!
   creator_id: Int!
+}
+
+input UpdatedAudioShort {
+  title: String
+  description: String
+  audio_file: Upload
+  category: String
 }

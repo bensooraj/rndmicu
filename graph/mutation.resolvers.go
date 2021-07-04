@@ -52,6 +52,38 @@ func (r *mutationResolver) AudioshortCreate(ctx context.Context, audioshort mode
 	return &a, nil
 }
 
+func (r *mutationResolver) AudioshortUpdate(ctx context.Context, id string, audioshort model.UpdatedAudioShort) (*models.AudioShort, error) {
+	q := models.New(r.DB)
+	existingAS, err := q.FindAudioShortByID(ctx, uuid.MustParse(id))
+	if err != nil {
+		return nil, fmt.Errorf("The Audio Short ID %s doesn't exist.", id)
+	}
+
+	updateReq := models.UpdateAudioShortByIDParams{
+		Title:       existingAS.Title,
+		Description: existingAS.Description,
+		Category:    existingAS.Category,
+		DateUpdated: time.Now(),
+		ID:          uuid.MustParse(id),
+	}
+	if audioshort.Title != nil {
+		updateReq.Title = *audioshort.Title
+	}
+	if audioshort.Description != nil {
+		updateReq.Description = *audioshort.Description
+	}
+	if audioshort.Category != nil {
+		updateReq.Category = *audioshort.Category
+	}
+
+	newAS, err := q.UpdateAudioShortByID(ctx, updateReq)
+	if err != nil {
+		return nil, fmt.Errorf("There was an error updating the audio shortID.")
+	}
+
+	return &newAS, nil
+}
+
 func (r *mutationResolver) AudioshortDelete(ctx context.Context, id string) (*models.AudioShort, error) {
 	q := models.New(r.DB)
 	// Check if the audio short exists

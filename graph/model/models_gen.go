@@ -7,10 +7,16 @@ import (
 )
 
 type NewAudioShort struct {
-	Title        string         `json:"title"`
-	Description  string         `json:"description"`
-	AudioFile    graphql.Upload `json:"audio_file"`
-	AudioFileURL string         `json:"audio_file_url"`
-	Category     string         `json:"category"`
-	CreatorID    int            `json:"creator_id"`
+	Title       string         `json:"title"`
+	Description string         `json:"description"`
+	AudioFile   graphql.Upload `json:"audio_file"`
+	Category    string         `json:"category"`
+	CreatorID   int            `json:"creator_id"`
+}
+
+type UpdatedAudioShort struct {
+	Title       *string         `json:"title"`
+	Description *string         `json:"description"`
+	AudioFile   *graphql.Upload `json:"audio_file"`
+	Category    *string         `json:"category"`
 }
