@@ -1,4 +1,5 @@
 format:
+	@go mod tidy
 	@go fmt github.com/bensooraj/rndmicu/...
 
 models:
@@ -12,3 +13,6 @@ utils-dropall:
 
 utils-seed: utils-create
 	go run data/utils/utils.go seed
+
+graph-gen:
+	go run github.com/99designs/gqlgen generate

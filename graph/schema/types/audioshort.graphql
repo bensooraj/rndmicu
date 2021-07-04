@@ -1,0 +1,23 @@
+type AudioShort {
+  id: String!
+
+  title: String!
+  description: String!
+  audio_file_url: String!
+  category: String!
+
+  date_created: Time!
+  date_updated: Time!
+
+  creator_id: Int!
+  creator: Creator! @goField(forceResolver: true)
+}
+
+input NewAudioShort {
+  title: String!
+  description: String!
+  audio_file: Upload!
+  audio_file_url: String!
+  category: String!
+  creator_id: Int!
+}

@@ -1,0 +1,5 @@
+type Creator {
+  id: Int!
+  name: String!
+  email: String!
+}

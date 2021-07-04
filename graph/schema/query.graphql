@@ -1,0 +1,7 @@
+type Query {
+    creator(id: Int!): Creator
+    creators(limit: Int, offset: Int): [Creator!]!
+
+    audio_short(id: String!): AudioShort
+    audio_shorts(limit: Int, offset: Int): [AudioShort!]!
+}
