@@ -28,13 +28,17 @@ func init() {
 func main() {
 	serverCtx, serverCtxCancel := context.WithCancel(context.Background())
 
+	dbDisableTLS := os.Getenv("DB_DISABLE_TLS")
 	dbCfg := database.Config{
 		User:     os.Getenv("DB_USERNAME"),
 		Password: os.Getenv("DB_PASSWORD"),
 		Host:     os.Getenv("DB_HOST"),
 		Name:     os.Getenv("DB_PATH"),
 	}
-	log.Println("dbCfg: ", dbCfg)
+	if dbDisableTLS != "" && dbDisableTLS == "true" {
+		dbCfg.DisableTLS = true
+	}
+	log.Printf("dbCfg: %+v", dbCfg)
 
 	db, err := database.Open(dbCfg)
 	if err != nil {
