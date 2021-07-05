@@ -1,0 +1,2 @@
+export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
+docker run -d --env-file /home/ec2-user/rndmicu/production.env -p 80:8080 $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/rndmicu:latest

@@ -1,0 +1,19 @@
+version: 0.0
+os: linux
+hooks:
+  ApplicationStop:
+    - location: codepipeline/deploy_scripts/00-application-stop.sh
+      timeout: 300
+      runas: root
+  BeforeInstall:
+    - location: codepipeline/deploy_scripts/01-before-install.sh
+      timeout: 300
+      runas: root
+  Install:
+    - location: codepipeline/deploy_scripts/02-install.sh
+      timeout: 300    
+      runas: root  
+  ApplicationStart:
+    - location: codepipeline/deploy_scripts/03-application-start.sh
+      timeout: 300    
+      runas: root  
