@@ -29,3 +29,4 @@ artifacts:
   files:
     - service_imagedefinitions.json
     - appspec.yml
+    - 'codepipeline/deploy_scripts/**'
