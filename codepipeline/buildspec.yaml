@@ -28,3 +28,4 @@ phases:
 artifacts:
   files:
     - service_imagedefinitions.json
+    - AppSpec.yml
